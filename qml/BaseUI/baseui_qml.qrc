@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/imports/BaseUI">
+        <file>qmldir</file>
+        <file>App.qml</file>
+        <file>AppStackPage.qml</file>
+        <file>AppToolBar.qml</file>
+        <file>ButtonFlat.qml</file>
+        <file>ButtonRaised.qml</file>
+        <file>HorizontalDivider.qml</file>
+        <file>LabelBody.qml</file>
+        <file>LabelSubheading.qml</file>
+        <file>LabelTitle.qml</file>
+        <file>PopupColorSelection.qml</file>
+        <file>PopupError.qml</file>
+        <file>PopupInfo.qml</file>
+        <file>PopupList.qml</file>
+        <file>PopupModalBase.qml</file>
+        <file>PopupToast.qml</file>
+        <file>SettingsItem.qml</file>
+        <file>SettingsSectionTitle.qml</file>
+        <file>Style.qml</file>
+    </qresource>
+</RCC>
