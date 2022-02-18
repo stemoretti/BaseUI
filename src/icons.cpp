@@ -1,15 +1,14 @@
-#include "icons.h"
+#include <BaseUI/icons.h>
 
 #include <QDebug>
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QVariant>
+#include <QVariantHash>
 #include <QQmlEngine>
 #include <QFontDatabase>
-#include <QColor>
 
 #include "iconprovider.h"
+
+namespace BaseUI
+{
 
 Icons::Icons(QObject *parent)
     : QQmlPropertyMap(this, parent)
@@ -32,14 +31,16 @@ QObject *Icons::singletonProvider(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
     return instance();
 }
 
-void Icons::registerIcons(QQmlEngine *engine, const QString &path)
+void Icons::registerIcons(QQmlEngine *engine, const QString &fontPath,
+                          const QString &fontName, const QString &codesPath)
 {
-    QString iconProviderName = "baseui_icons";
+    static int index = 0;
+    QString iconProviderName = "baseui_icons" + QString::number(index++);
 
-    if (QFontDatabase::addApplicationFont(path + "MaterialIcons-Regular.ttf") == -1)
-        qWarning() << "Failed to load font Material";
+    if (QFontDatabase::addApplicationFont(fontPath) == -1)
+        qWarning() << "Failed to load font:" << fontPath;
 
-    auto iconProvider = new IconProvider("Material Icons", path + "codepoints.json");
+    auto iconProvider = new IconProvider(fontName, codesPath);
 
     engine->addImageProvider(iconProviderName, iconProvider);
 
@@ -52,4 +53,6 @@ void Icons::registerIcons(QQmlEngine *engine, const QString &path)
         hash.insert(key, QVariant("image://" + iconProviderName + "/" + key + ","));
     instance()->insert(hash);
 #endif
+}
+
 }

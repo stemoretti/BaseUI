@@ -1,11 +1,13 @@
 #include <BaseUI/core.h>
 
-#include <QCoreApplication>
 #include <QQmlEngine>
 #include <QQuickStyle>
-#include <QDebug>
 
-#include "icons.h"
+#if defined(BASEUI_INCLUDE_ICONS) && !defined(BASEUI_EMBED_ICONS)
+#include <QCoreApplication>
+#endif
+
+#include <BaseUI/icons.h>
 
 static void initialize(QQmlEngine *engine)
 {
@@ -14,6 +16,7 @@ static void initialize(QQmlEngine *engine)
     engine->addImportPath(":/imports");
 #endif
 
+#ifdef BASEUI_INCLUDE_ICONS
     QString path = "/BaseUI/icons/";
 
 #ifdef BASEUI_EMBED_ICONS
@@ -23,7 +26,9 @@ static void initialize(QQmlEngine *engine)
     path = QCoreApplication::applicationDirPath() + path;
 #endif
 
-    Icons::registerIcons(engine, path);
+    BaseUI::Icons::registerIcons(engine, path + "MaterialIcons-Regular.ttf",
+                                 "Material Icons", path + "codepoints.json");
+#endif
 }
 
 namespace BaseUI

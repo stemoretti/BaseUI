@@ -7,8 +7,8 @@ INCLUDEPATH += \
 
 HEADERS += \
     $$PWD/include/BaseUI/core.h \
-    $$PWD/src/iconprovider.h \
-    $$PWD/src/icons.h
+    $$PWD/include/BaseUI/icons.h \
+    $$PWD/src/iconprovider.h
 
 SOURCES += \
     $$PWD/src/core.cpp \
@@ -34,21 +34,24 @@ contains(CONFIG, baseui_embed_qml) {
     INSTALLS += qml_install
 }
 
-contains(CONFIG, baseui_embed_icons) {
-    DEFINES += BASEUI_EMBED_ICONS
-    RESOURCES += $$PWD/icons/baseui_icons.qrc
-} else {
-    BASEUI_ICONS_DIR = $$BASEUI_DIR/icons
-    ICONS_FILES = \
-        $$PWD/icons/codepoints.json \
-        $$PWD/icons/MaterialIcons-Regular.ttf
+!contains(CONFIG, baseui_no_icons) {
+    DEFINES += BASEUI_INCLUDE_ICONS
+    contains(CONFIG, baseui_embed_icons) {
+        DEFINES += BASEUI_EMBED_ICONS
+        RESOURCES += $$PWD/icons/baseui_icons.qrc
+    } else {
+        BASEUI_ICONS_DIR = $$BASEUI_DIR/icons
+        ICONS_FILES = \
+            $$PWD/icons/codepoints.json \
+            $$PWD/icons/MaterialIcons-Regular.ttf
 
-    icons_copy.path = $$BASEUI_ICONS_DIR
-    icons_copy.files = $$ICONS_FILES
+        icons_copy.path = $$BASEUI_ICONS_DIR
+        icons_copy.files = $$ICONS_FILES
 
-    icons_install.path = $$DESTDIR/$$BASEUI_ICONS_DIR
-    icons_install.files = $$ICONS_FILES
+        icons_install.path = $$DESTDIR/$$BASEUI_ICONS_DIR
+        icons_install.files = $$ICONS_FILES
 
-    COPIES += icons_copy
-    INSTALLS += icons_install
+        COPIES += icons_copy
+        INSTALLS += icons_install
+    }
 }

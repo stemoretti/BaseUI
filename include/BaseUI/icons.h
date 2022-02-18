@@ -6,6 +6,9 @@
 class QQmlEngine;
 class QJSEngine;
 
+namespace BaseUI
+{
+
 class Icons : public QQmlPropertyMap
 {
     Q_OBJECT
@@ -16,7 +19,8 @@ public:
     static Icons *instance();
     static QObject *singletonProvider(QQmlEngine *qmlEngine, QJSEngine *jsEngine);
 
-    static void registerIcons(QQmlEngine *engine, const QString &path);
+    static void registerIcons(QQmlEngine *engine, const QString &fontPath,
+                              const QString &fontName, const QString &codesPath);
 
 protected:
     template <typename DerivedType>
@@ -24,5 +28,7 @@ protected:
         : QQmlPropertyMap(derived, parent)
     {}
 };
+
+}
 
 #endif
