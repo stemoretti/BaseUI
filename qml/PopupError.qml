@@ -1,10 +1,10 @@
-import QtQuick 2.12
-import QtQuick.Window 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.Material 2.12
-import QtQuick.Layouts 1.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Window
 
-import BaseUI 1.0
+import BaseUI as UI
 
 Popup {
     id: root
@@ -45,13 +45,11 @@ Popup {
     RowLayout {
         width: parent.width
 
-        Image {
-            id: alarmIcon
-
-            smooth: true
-            source: Icons.error + "color=white"
-            sourceSize.width: 36
-            sourceSize.height: 36
+        Icon {
+            width: 36
+            height: 36
+            icon: UI.Icons.error
+            color: "white"
         }
 
         Label {

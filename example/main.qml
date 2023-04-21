@@ -1,14 +1,14 @@
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Controls.Material 2.12
-import QtQuick.Layouts 1.12
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
 
-import BaseUI 1.0 as UI
+import BaseUI as UI
 
 UI.App {
     id: root
 
-    width: 360
+    width: 640
     height: 480
 
     property string primary: Material.primary
@@ -45,6 +45,24 @@ UI.App {
                     rightPadding: 10
                     text: Qt.application.name
                 }
+
+                RowLayout {
+                    UI.ButtonContained {
+                        text: "Time Picker"
+                        buttonColor: UI.Style.primaryColor
+                        onClicked: timePicker.open()
+                    }
+
+                    UI.ButtonContained {
+                        text: timePicker.time24h ? "24hr" : "AM/PM"
+                        buttonColor: UI.Style.primaryColor
+                        onClicked: timePicker.time24h = !timePicker.time24h
+                    }
+
+                    UI.LabelBody {
+                        text: timePicker.timeString
+                    }
+                }
             }
         }
 
@@ -68,33 +86,31 @@ UI.App {
                     anchors { left: parent.left; right: parent.right }
                     spacing: 0
 
-                    Rectangle {
-                        id: topItem
-
-                        height: 140
-                        color: UI.Style.primaryColor
+                    Label {
+                        text: Qt.application.displayName
+                        color: Material.foreground
+                        font.pixelSize: UI.Style.fontSizeHeadline
+                        padding: (homePage.appToolBar.implicitHeight - contentHeight) / 2
+                        leftPadding: 20
                         Layout.fillWidth: true
-
-                        Text {
-                            text: Qt.application.name
-                            color: UI.Style.textOnPrimary
-                            font.pixelSize: UI.Style.fontSizeHeadline
-                            wrapMode: Text.WordWrap
-                            anchors {
-                                left: parent.left
-                                right: parent.right
-                                bottom: parent.bottom
-                                margins: 25
-                            }
-                        }
                     }
+
+                    UI.HorizontalListDivider {}
 
                     Repeater {
                         id: pageList
 
                         model: [
-                            { icon: UI.Icons.settings, text: "Settings", page: settingsPage },
-                            { icon: UI.Icons.info_outline, text: "About", page: aboutPage }
+                            {
+                                icon: UI.Icons.settings,
+                                text: "Settings",
+                                page: settingsPageComponent
+                            },
+                            {
+                                icon: UI.Icons.info_outline,
+                                text: "Info",
+                                page: infoPageComponent
+                            }
                         ]
 
                         delegate: ItemDelegate {
@@ -105,7 +121,7 @@ UI.App {
                                 // Disable, or a double click will push the page twice.
                                 menuColumn.enabled = false
                                 navDrawer.close()
-                                pageStack.push(modelData.page)
+                                homePage.stack.push(modelData.page)
                             }
                         }
                     }
@@ -139,14 +155,25 @@ UI.App {
                 onTriggered: infoPopup.open()
             }
         }
+
+        UI.TimePickerCircular {
+            id: timePicker
+        }
     }
 
     Component {
-        id: settingsPage
+        id: settingsPageComponent
 
         UI.AppStackPage {
+            id: settingsPage
+
             title: "Settings"
             padding: 0
+
+            leftButton: Action {
+                icon.source: UI.Icons.arrow_back
+                onTriggered: settingsPage.back()
+            }
 
             Flickable {
                 contentHeight: settingsPane.implicitHeight
@@ -166,24 +193,29 @@ UI.App {
                             text: "Display"
                         }
 
-                        UI.SettingsItem {
+                        UI.SettingsCheckItem {
                             title: "Dark Theme"
-                            check.visible: true
-                            check.checked: root.theme
-                            check.onClicked: root.theme = !root.theme
-                            onClicked: check.clicked()
+                            checkState: root.theme ? Qt.Checked : Qt.Unchecked
+                            onClicked: root.theme = !root.theme
+                            Layout.fillWidth: true
                         }
 
                         UI.SettingsItem {
                             title: "Primary Color"
-                            subtitle: primaryColorPopup.currentColorName
-                            onClicked: primaryColorPopup.open()
+                            subtitle: colorDialog.getColorName(root.primary)
+                            onClicked: {
+                                colorDialog.selectAccentColor = false
+                                colorDialog.open()
+                            }
                         }
 
                         UI.SettingsItem {
                             title: "Accent Color"
-                            subtitle: accentColorPopup.currentColorName
-                            onClicked: accentColorPopup.open()
+                            subtitle: colorDialog.getColorName(root.accent)
+                            onClicked: {
+                                colorDialog.selectAccentColor = true
+                                colorDialog.open()
+                            }
                         }
                     }
                 }
@@ -192,18 +224,24 @@ UI.App {
     }
 
     Component {
-        id: aboutPage
+        id: infoPageComponent
 
         UI.AppStackPage {
-            title: "About"
+            id: infoPage
+            title: "Info"
             padding: 10
 
+            leftButton: Action {
+                icon.source: UI.Icons.arrow_back
+                onTriggered: infoPage.back()
+            }
+
             Flickable {
-                contentHeight: aboutPane.implicitHeight
+                contentHeight: infoPane.implicitHeight
                 anchors.fill: parent
 
                 Pane {
-                    id: aboutPane
+                    id: infoPane
 
                     anchors.fill: parent
 
@@ -216,42 +254,10 @@ UI.App {
                         }
 
                         UI.LabelBody {
-                            property string url: "http://github.com/stemoretti/baseui"
-
-                            text: "<a href='" + url + "'>" + url + "</a>"
+                            text: "<a href='%1'>%1</a>".arg("http://github.com/stemoretti/BaseUI")
                             linkColor: UI.Style.isDarkTheme ? "lightblue" : "blue"
                             onLinkActivated: Qt.openUrlExternally(link)
                             horizontalAlignment: Qt.AlignHCenter
-                        }
-
-                        UI.HorizontalDivider { }
-
-                        UI.LabelSubheading {
-                            text: "This app is based on the following software:"
-                            wrapMode: Text.WordWrap
-                        }
-
-                        UI.LabelBody {
-                            text: "Qt 6<br>"
-                                  + "Copyright 2008-2021 The Qt Company Ltd."
-                                  + " All rights reserved."
-                            wrapMode: Text.WordWrap
-                        }
-
-                        UI.LabelBody {
-                            text: "Qt is under the LGPLv3 license."
-                            wrapMode: Text.WordWrap
-                        }
-
-                        UI.HorizontalDivider { }
-
-                        UI.LabelBody {
-                            text: "<a href='https://material.io/tools/icons/'"
-                                  + "title='Material Design'>Material Design</a>"
-                                  + " icons are under Apache license version 2.0"
-                            wrapMode: Text.WordWrap
-                            linkColor: UI.Style.isDarkTheme ? "lightblue" : "blue"
-                            onLinkActivated: Qt.openUrlExternally(link)
                         }
                     }
                 }
@@ -275,23 +281,79 @@ UI.App {
         text: "Information message."
     }
 
-    UI.PopupColorSelection {
-        id: primaryColorPopup
+    UI.OptionsDialog {
+        id: colorDialog
 
-        parent: Overlay.overlay
+        property bool selectAccentColor: false
 
-        currentColor: root.primary
-        onColorSelected: function(c) { root.primary = c }
-    }
+        function getColorName(color) {
+            var filtered = colorDialog.model.filter((c) => {
+                return Material.color(c.bg) === color
+            })
+            return filtered.length ? filtered[0].name : ""
+        }
 
-    UI.PopupColorSelection {
-        id: accentColorPopup
+        title: selectAccentColor ? qsTr("Choose accent color") : qsTr("Choose primary color")
+        model: [
+            { name: "Material Red", bg: Material.Red },
+            { name: "Material Pink", bg: Material.Pink },
+            { name: "Material Purple", bg: Material.Purple },
+            { name: "Material DeepPurple", bg: Material.DeepPurple },
+            { name: "Material Indigo", bg: Material.Indigo },
+            { name: "Material Blue", bg: Material.Blue },
+            { name: "Material LightBlue", bg: Material.LightBlue },
+            { name: "Material Cyan", bg: Material.Cyan },
+            { name: "Material Teal", bg: Material.Teal },
+            { name: "Material Green", bg: Material.Green },
+            { name: "Material LightGreen", bg: Material.LightGreen },
+            { name: "Material Lime", bg: Material.Lime },
+            { name: "Material Yellow", bg: Material.Yellow },
+            { name: "Material Amber", bg: Material.Amber },
+            { name: "Material Orange", bg: Material.Orange },
+            { name: "Material DeepOrange", bg: Material.DeepOrange },
+            { name: "Material DeepOrange", bg: Material.DeepOrange },
+            { name: "Material Brown", bg: Material.Brown },
+            { name: "Material Grey", bg: Material.Grey },
+            { name: "Material BlueGrey", bg: Material.BlueGrey }
+        ]
+        delegate: RowLayout {
+            spacing: 0
 
-        parent: Overlay.overlay
+            Rectangle {
+                visible: colorDialog.selectAccentColor
+                color: UI.Style.primaryColor
+                Layout.margins: 0
+                Layout.leftMargin: 10
+                Layout.minimumWidth: 48
+                Layout.minimumHeight: 32
+            }
 
-        selectAccentColor: true
-        currentColor: root.accent
-        onColorSelected: function(c) { root.accent = c }
+            Rectangle {
+                color: Material.color(modelData.bg)
+                Layout.margins: 0
+                Layout.leftMargin: colorDialog.selectAccentColor ? 0 : 10
+                Layout.minimumWidth: 32
+                Layout.minimumHeight: 32
+            }
+
+            RadioButton {
+                checked: {
+                    if (colorDialog.selectAccentColor)
+                        Material.color(modelData.bg) === root.accent
+                    else
+                        Material.color(modelData.bg) === root.primary
+                }
+                text: modelData.name
+                Layout.leftMargin: 4
+                onClicked: {
+                    colorDialog.close()
+                    if (colorDialog.selectAccentColor)
+                        root.accent = Material.color(modelData.bg)
+                    else
+                        root.primary = Material.color(modelData.bg)
+                }
+            }
+        }
     }
 
     Component.onCompleted: {

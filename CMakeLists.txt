@@ -1,78 +1,95 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.19)
 
-project(baseui VERSION 0.1 LANGUAGES CXX)
+project(BaseUI VERSION 1.0 LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+include(GNUInstallDirs)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-option(BASEUI_EMBED_QML "BaseUI embed qml" OFF)
-option(BASEUI_EMBED_ICONS "BaseUI embed icons" OFF)
+option(BASEUI_INCLUDE_ICONS "Include Material icons" ON)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Qml Quick Gui QuickControls2 REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Qml Quick QuickControls2 ShaderTools REQUIRED)
 
-add_library(${PROJECT_NAME} STATIC
-    include/BaseUI/core.h
-    src/core.cpp
-    src/iconprovider.h
-    src/icons.h
-    src/icons.cpp
+set_source_files_properties(qml/Style.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
+qt_add_qml_module(baseui
+    URI BaseUI
+    VERSION 1.0
+    SOURCES
+        include/BaseUI/core.h
+        src/core.cpp
+        src/iconprovider.h
+        src/icons.cpp
+        src/icons.h
+        src/plugin.h
+    QML_FILES
+        qml/App.qml
+        qml/AppStackPage.qml
+        qml/AppToolBar.qml
+        qml/ButtonContained.qml
+        qml/ButtonFlat.qml
+        qml/DatePicker.qml
+        qml/EdgeEffect.qml
+        qml/HorizontalDivider.qml
+        qml/HorizontalListDivider.qml
+        qml/Icon.qml
+        qml/LabelBody.qml
+        qml/LabelBodySecondary.qml
+        qml/LabelSubheading.qml
+        qml/LabelTitle.qml
+        qml/ListViewEdgeEffect.qml
+        qml/OptionsDialog.qml
+        qml/PopupError.qml
+        qml/PopupInfo.qml
+        qml/PopupToast.qml
+        qml/SettingsCheckItem.qml
+        qml/SettingsItem.qml
+        qml/SettingsSectionTitle.qml
+        qml/Style.qml
+        qml/TimeCircle.qml
+        qml/TimePickerCircular.qml
+        qml/TimePickerTumbler.qml
+    RESOURCE_PREFIX
+        "/baseui/imports"
 )
 
-if(BASEUI_EMBED_QML)
-    target_sources(${PROJECT_NAME} PRIVATE "qml/BaseUI/baseui_qml.qrc")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE BASEUI_EMBED_QML)
-else()
-    file(GLOB QML_FILES "qml/BaseUI/*.qml" "qml/BaseUI/qmldir")
+qt_add_shaders(baseui "baseui_shaders"
+    BATCHABLE
+    PRECOMPILE
+    PREFIX
+        "/baseui/imports/BaseUI"
+    FILES
+        qml/shaders/clock.frag
+        qml/shaders/icon.frag
+)
 
-    add_custom_target(copy_qml_to_binary_dir ALL
-        COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_BINARY_DIR}/BaseUI"
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${QML_FILES} "${CMAKE_BINARY_DIR}/BaseUI"
-        COMMENT "Copying QML files to binary directory"
-        VERBATIM
+if(BASEUI_INCLUDE_ICONS)
+    target_compile_definitions(baseui PRIVATE BASEUI_INCLUDE_ICONS)
+    qt_add_resources(baseui "baseui_icons"
+        PREFIX
+            "/baseui/imports/BaseUI"
+        FILES
+            icons/codepoints.json
+            icons/MaterialIcons-Regular.ttf
     )
 endif()
 
-if(BASEUI_EMBED_ICONS)
-    target_sources(${PROJECT_NAME} PRIVATE "icons/baseui_icons.qrc")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE BASEUI_EMBED_ICONS)
-else()
-    add_custom_target(copy_icons_to_binary_dir ALL
-        COMMAND "${CMAKE_COMMAND}" -E make_directory "${CMAKE_BINARY_DIR}/BaseUI/icons"
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-                "${PROJECT_SOURCE_DIR}/icons/codepoints.json"
-                "${PROJECT_SOURCE_DIR}/icons/MaterialIcons-Regular.ttf"
-                "${CMAKE_BINARY_DIR}/BaseUI/icons"
-        COMMENT "Copying icons files to binary directory"
-        VERBATIM
-    )
-endif()
+target_include_directories(baseui
+    PUBLIC  "${PROJECT_SOURCE_DIR}/include"
+    PRIVATE "${PROJECT_SOURCE_DIR}/src"
+)
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
-
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    CXX_STANDARD              11
+set_target_properties(baseui PROPERTIES
+    CXX_STANDARD              17
     CXX_STANDARD_REQUIRED     YES
     CXX_EXTENSIONS            NO
 )
 
-target_compile_definitions(${PROJECT_NAME}
-    PRIVATE
-        $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:
-            QT_QML_DEBUG
-            # enable deprecated warnings for qt < 5.13
-            QT_DEPRECATED_WARNINGS
-        >
+target_compile_definitions(baseui
+    PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 
-        $<$<CONFIG:Release>:
-            # disable deprecated warnings for qt >= 5.13
-            QT_NO_DEPRECATED_WARNINGS
-        >
-)
-
-target_compile_options(${PROJECT_NAME}
+target_compile_options(baseui
     PRIVATE
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
             -Wall
@@ -85,10 +102,17 @@ target_compile_options(${PROJECT_NAME}
         >
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(baseui
     PRIVATE
-        Qt${QT_VERSION_MAJOR}::Qml
-        Qt${QT_VERSION_MAJOR}::Quick
-        Qt${QT_VERSION_MAJOR}::Gui
-        Qt${QT_VERSION_MAJOR}::QuickControls2
+        Qt::Core
+        Qt::Gui
+        Qt::Qml
+        Qt::Quick
+        Qt::QuickControls2
+)
+
+install(TARGETS baseui
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    BUNDLE DESTINATION "."
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )

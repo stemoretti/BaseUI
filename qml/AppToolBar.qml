@@ -1,8 +1,10 @@
-import QtQuick 2.12
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
 ToolBar {
+    id: root
+
     property Action leftButton
     property list<Action> rightButtons
 
@@ -14,12 +16,12 @@ ToolBar {
         anchors { fill: parent; leftMargin: 4; rightMargin: 4 }
 
         ToolButton {
-            icon.source: leftButton ? leftButton.icon.source : ""
+            icon.source: root.leftButton?.icon.source ?? ""
             icon.color: Style.textOnPrimary
             focusPolicy: Qt.NoFocus
             opacity: Style.opacityTitle
-            enabled: leftButton && leftButton.enabled
-            onClicked: leftButton.trigger()
+            enabled: root.leftButton && root.leftButton.enabled
+            onClicked: root.leftButton.trigger()
         }
         LabelTitle {
             id: titleLabel
@@ -28,14 +30,14 @@ ToolBar {
             Layout.fillWidth: true
         }
         Repeater {
-            model: rightButtons.length
+            model: root.rightButtons.length
             delegate: ToolButton {
-                icon.source: rightButtons[index].icon.source
+                icon.source: root.rightButtons[index].icon.source
                 icon.color: Style.textOnPrimary
                 focusPolicy: Qt.NoFocus
                 opacity: Style.opacityTitle
-                enabled: rightButtons[index].enabled
-                onClicked: rightButtons[index].trigger()
+                enabled: root.rightButtons[index].enabled
+                onClicked: root.rightButtons[index].trigger()
             }
         }
     }

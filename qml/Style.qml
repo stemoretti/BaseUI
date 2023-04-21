@@ -1,7 +1,7 @@
 pragma Singleton
 
-import QtQuick 2.12
-import QtQuick.Controls.Material 2.12
+import QtQuick
+import QtQuick.Controls.Material
 
 QtObject {
     property bool isDarkTheme: false

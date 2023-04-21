@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="imports/BaseUI/icons">
-        <file>MaterialIcons-Regular.ttf</file>
-        <file>codepoints.json</file>
-    </qresource>
-</RCC>

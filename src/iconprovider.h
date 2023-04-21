@@ -9,21 +9,29 @@
 #include <QJsonObject>
 #include <QPainter>
 #include <QFontMetrics>
+#include <QVariantMap>
 
 class IconProvider : public QQuickImageProvider
 {
 public:
-    explicit IconProvider(const QString &family, const QString &codesPath)
+    IconProvider(const QString &family, const QVariantMap &codes)
+        : QQuickImageProvider(QQuickImageProvider::Image)
+        , codepoints(codes)
+        , font(family)
+    {
+    }
+
+    IconProvider(const QString &family, const QString &codesPath)
         : QQuickImageProvider(QQuickImageProvider::Image)
         , font(family)
     {
         QFile file(codesPath);
         if (file.exists() && file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            auto jd = QJsonDocument::fromJson(file.readAll());
-            if (!jd.isNull())
-                codepoints = jd.object();
-            else
+            QJsonDocument jd = QJsonDocument::fromJson(file.readAll());
+            if (jd.isNull())
                 qWarning() << "Invalid codepoints JSON file" << codesPath;
+            else
+                codepoints = jd.object().toVariantMap();
         } else {
             qWarning() << "Cannot open icon codes file" << codesPath;
             qWarning() << file.errorString();
@@ -44,22 +52,13 @@ public:
         if (size)
             *size = QSize(width, height);
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
-        QStringList args = id.split(",", QString::SkipEmptyParts);
-#else
-        QStringList args = id.split(",", Qt::SkipEmptyParts);
-#endif
-
         QString iconChar("?");
-        if (!args.isEmpty()) {
-            QString name = args.takeFirst();
-            if (codepoints.value(name).isUndefined())
-                qWarning() << "Icon name" << name << "not found in" << font.family();
-            else
-                iconChar = codepoints[name].toString();
-        } else {
+        if (id.isEmpty())
             qWarning() << "Icon name empty";
-        }
+        else if (codepoints.value(id).isNull())
+            qWarning() << "Icon name" << id << "not found in" << font.family();
+        else
+            iconChar = codepoints[id].toString();
 
         font.setPixelSize(width < height ? width : height);
 
@@ -72,29 +71,6 @@ public:
         image.fill(Qt::transparent);
 
         QPainter painter(&image);
-
-        for (const QString &arg : args) {
-#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
-            QStringList attr = arg.split("=", QString::SkipEmptyParts);
-#else
-            QStringList attr = arg.split("=", Qt::SkipEmptyParts);
-#endif
-            if (attr.isEmpty() || attr.size() > 2) {
-                qWarning() << "Argument" << arg << "not valid.";
-            } else if (attr[0] == "color") {
-                if (attr.size() == 2)
-                    painter.setPen(attr[1]);
-                else
-                    qWarning() << "Attribute color needs a value";
-            } else if (attr[0] == "hflip") {
-                painter.setTransform(QTransform(-1, 0, 0, 0, 1, 0, width, 0, 1));
-            } else if (attr[0] == "vflip") {
-                painter.setTransform(QTransform(1, 0, 0, 0, -1, 0, 0, height, 1));
-            } else {
-                qWarning() << "Unknown attribute" << attr;
-            }
-        }
-
         painter.setFont(font);
         painter.drawText(QRect(0, 0, width, height), Qt::AlignCenter, iconChar);
 
@@ -104,7 +80,7 @@ public:
     QStringList keys() { return codepoints.keys(); }
 
 private:
-    QJsonObject codepoints;
+    QVariantMap codepoints;
     QFont font;
 };
 

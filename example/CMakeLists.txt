@@ -2,20 +2,28 @@ cmake_minimum_required(VERSION 3.10)
 
 project(example VERSION 0.1 LANGUAGES CXX)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Qml Quick Gui QuickControls2 REQUIRED)
+find_package(Qt6 COMPONENTS Core Gui Qml Quick QuickControls2 REQUIRED)
 
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-add_executable(${PROJECT_NAME} main.cpp qml.qrc)
+add_subdirectory(BaseUI)
 
-add_subdirectory(baseui)
+qt_add_executable(example WIN32 MACOSX_BUNDLE main.cpp)
 
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        Qt${QT_VERSION_MAJOR}::Qml
-        Qt${QT_VERSION_MAJOR}::Quick
-        Qt${QT_VERSION_MAJOR}::Gui
-        Qt${QT_VERSION_MAJOR}::QuickControls2
+qt_add_qml_module(example
+    URI Example
+    VERSION 1.0
+    QML_FILES main.qml
+    NO_RESOURCE_TARGET_PATH
+)
+
+target_link_libraries(example
+    PUBLIC
+        Qt::Core
+        Qt::Gui
+        Qt::Qml
+        Qt::Quick
+        Qt::QuickControls2
         baseui
 )

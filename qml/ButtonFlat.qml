@@ -1,10 +1,9 @@
-// ekke (Ekkehard Gentz) @ekkescorner
-import QtQuick 2.12
-import QtQuick.Layouts 1.12
-import QtQuick.Controls 2.12
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
 
 Button {
-    id: button
+    id: root
 
     property alias textColor: buttonText.color
 
@@ -12,11 +11,9 @@ Button {
     leftPadding: 6
     rightPadding: 6
 
-    Layout.minimumWidth: 88
-
     contentItem: Text {
         id: buttonText
-        text: button.text
+        text: root.text
         opacity: enabled ? 1.0 : 0.3
         color: Style.flatButtonTextColor
         horizontalAlignment: Text.AlignHCenter
@@ -29,8 +26,8 @@ Button {
     background: Rectangle {
         id: buttonBackground
         implicitHeight: 48
-        color: button.pressed ? buttonText.color : "transparent"
+        color: root.pressed ? buttonText.color : "transparent"
         radius: 2
-        opacity: button.pressed ? 0.12 : 1.0
+        opacity: root.pressed ? 0.12 : 1.0
     }
 }
