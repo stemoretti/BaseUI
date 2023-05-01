@@ -32,7 +32,7 @@ Dialog {
     focus: true
 
     onOpened: timePicker.update()
-    onClosed: timePicker.pickMinutes = false
+    onClosed: timePicker.setPickMinutes(false)
 
     on_IsLandscapeChanged: updateTimer.restart()
 
@@ -91,7 +91,7 @@ Dialog {
                         }
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: timePicker.pickMinutes = false
+                            onClicked: timePicker.setPickMinutes(false)
                         }
                     }
 
@@ -111,7 +111,7 @@ Dialog {
                         }
                         MouseArea {
                             anchors.fill: parent
-                            onClicked: timePicker.pickMinutes = true
+                            onClicked: timePicker.setPickMinutes(true)
                         }
                     }
                 }

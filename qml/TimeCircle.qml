@@ -10,7 +10,7 @@ Item {
     readonly property string timeString: _zeroPad(hours) + ":" + _zeroPad(minutes)
     readonly property bool isPM: hours >= 12
 
-    property bool pickMinutes: false
+    readonly property alias pickMinutes: clock.pickMinutes
     property bool time24h: false
 
     property color clockColor: "gray"
@@ -24,6 +24,11 @@ Item {
 
     property int labelsSize: 20
     property int clockHandCircleSize: 2 * labelsSize
+
+    function setPickMinutes(pick) {
+        if (!animation.running)
+            clock.pickMinutes = pick
+    }
 
     function update() {
         circle.pos = circle.mapToItem(root.screen, 0, circle.height)
@@ -45,19 +50,44 @@ Item {
     implicitHeight: implicitWidth
 
     onPickMinutesChanged: {
-        handAnimation.enabled = circleAnimation.enabled = true
-        disableAnimationTimer.start()
+        var minAngle = 360 / 60 * root.minutes
+        var hourAngle = 360 / 12 * (root.hours - (root.hours >= 12 ? 12 : 0))
+
+        var diff = minAngle - hourAngle
+        if (Math.abs(diff) <= 180) {
+            handToAnimation.to = handFromAnimation.from = (minAngle + hourAngle) / 2
+        } else {
+            handToAnimation.to     = root.pickMinutes ? (diff >= 0 ? 0 : 360) : (diff >= 0 ? 360 : 0)
+            handFromAnimation.from = root.pickMinutes ? (diff >= 0 ? 360 : 0) : (diff >= 0 ? 0 : 360)
+        }
+        circleToAnimation.to = handToAnimation.to / 180 * Math.PI
+        circleFromAnimation.from = handFromAnimation.from / 180 * Math.PI
+
+        var toMiddleTime
+        var fromMiddleTime
+        if (root.pickMinutes) {
+            toMiddleTime = Math.abs(hourAngle - handToAnimation.to) / 180 * 400
+            fromMiddleTime = Math.abs(minAngle - handFromAnimation.from) / 180 * 400
+        } else {
+            toMiddleTime = Math.abs(minAngle - handToAnimation.to) / 180 * 400
+            fromMiddleTime = Math.abs(hourAngle - handFromAnimation.from) / 180 * 400
+        }
+        handToAnimation.duration = circleToAnimation.duration = toMiddleTime
+        handFromAnimation.duration = circleFromAnimation.duration = fromMiddleTime
+
+        animation.interval = Math.max(toMiddleTime + fromMiddleTime, 200)
+
+        animation.start()
     }
 
     Timer {
-        id: disableAnimationTimer
-        interval: 400
-        repeat: false
-        onTriggered: handAnimation.enabled = circleAnimation.enabled = false
+        id: animation
     }
 
     Rectangle {
         id: clock
+
+        property bool pickMinutes: false
 
         width: Math.min(root.width, root.height)
         height: width
@@ -98,13 +128,14 @@ Item {
                 }
             }
 
+            enabled: !animation.running
             anchors.fill: parent
             pressAndHoldInterval: 100
 
-            onClicked: (mouse) => { selectTime(mouse, true); root.pickMinutes = true }
+            onClicked: (mouse) => { selectTime(mouse, true); clock.pickMinutes = true }
             onPositionChanged: (mouse) => { if (isHold) selectTime(mouse) }
             onPressAndHold: (mouse) => { isHold = true; selectTime(mouse) }
-            onReleased: { if (isHold) { isHold = false; root.pickMinutes = true } }
+            onReleased: { if (isHold) { isHold = false; clock.pickMinutes = true } }
         }
 
         // clock hand
@@ -125,9 +156,15 @@ Item {
             color: root.clockHandColor
             antialiasing: true
             Behavior on rotation {
-                id: handAnimation
-                enabled: false
-                NumberAnimation { duration: 400 }
+                enabled: animation.running
+                SequentialAnimation {
+                    NumberAnimation { id: handToAnimation }
+                    NumberAnimation { id: handFromAnimation }
+                }
+            }
+            Behavior on height {
+                enabled: animation.running
+                NumberAnimation { duration: animation.interval }
             }
         }
 
@@ -159,9 +196,11 @@ Item {
             }
 
             Behavior on angle {
-                id: circleAnimation
-                enabled: false
-                NumberAnimation { duration: 400 }
+                enabled: animation.running
+                SequentialAnimation {
+                    NumberAnimation { id: circleToAnimation }
+                    NumberAnimation { id: circleFromAnimation }
+                }
             }
         }
 
@@ -188,9 +227,9 @@ Item {
                 font.pixelSize: root.labelsSize
                 visible: root.time24h
                 opacity: root.pickMinutes ? 0 : 1
-                color: root.labelsColor
+                color: layer.enabled || modelData != root.hours ? root.labelsColor : root.labelsSelectedColor
                 text: modelData
-                layer.enabled: true
+                layer.enabled: root.labelsSelectedColor != root.labelsColor && animation.running
                 layer.samplerName: "maskSource"
                 layer.effect: shaderEffect
                 Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -210,9 +249,24 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 font.pixelSize: root.labelsSize
                 opacity: root.pickMinutes ? 0 : 1
-                color: root.labelsColor
+                color: {
+                    if (!layer.enabled) {
+                        if (root.time24h) {
+                            if (modelData == root.hours)
+                                return root.labelsSelectedColor
+                        } else if (root.isPM) {
+                            if (modelData == root.hours - 12
+                                || (modelData == 12 && root.hours == 12))
+                                return root.labelsSelectedColor
+                        } else if (modelData == root.hours
+                                   || (modelData == 12 && root.hours == 0)) {
+                            return root.labelsSelectedColor
+                        }
+                    }
+                    return root.labelsColor
+                }
                 text: modelData
-                layer.enabled: true
+                layer.enabled: root.labelsSelectedColor != root.labelsColor && animation.running
                 layer.samplerName: "maskSource"
                 layer.effect: shaderEffect
                 Behavior on opacity { NumberAnimation { duration: 200 } }
@@ -233,9 +287,14 @@ Item {
                 font.pixelSize: root.labelsSize
                 visible: modelData % 5 == 0
                 opacity: root.pickMinutes ? 1 : 0
-                color: root.labelsColor
+                color: animation.running || modelData != root.minutes
+                        ? root.labelsColor : root.labelsSelectedColor
                 text: _zeroPad(modelData)
-                layer.enabled: true
+                layer.enabled: animation.running
+                                || (root.labelsSelectedColor != root.labelsColor
+                                    && root.minutes != modelData
+                                    && (Math.abs(root.minutes - modelData) < 5
+                                        || (modelData == 0 && root.minutes > 55)))
                 layer.samplerName: "maskSource"
                 layer.effect: shaderEffect
                 Behavior on opacity { NumberAnimation { duration: 200 } }
