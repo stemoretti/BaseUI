@@ -13,7 +13,8 @@ UI.App {
 
     property string primary: Material.primary
     property string accent: Material.accent
-    property bool theme: false
+    property bool theme: Material.theme === Material.Dark
+    property string themeStyle: "System"
 
     initialPage: UI.AppStackPage {
         id: homePage
@@ -193,10 +194,10 @@ UI.App {
                             text: "Display"
                         }
 
-                        UI.SettingsCheckItem {
-                            title: "Dark Theme"
-                            checkState: root.theme ? Qt.Checked : Qt.Unchecked
-                            onClicked: root.theme = !root.theme
+                        UI.SettingsItem {
+                            title: "Theme"
+                            subtitle: root.themeStyle
+                            onClicked: themeDialog.open()
                             Layout.fillWidth: true
                         }
 
@@ -216,6 +217,14 @@ UI.App {
                                 colorDialog.selectAccentColor = true
                                 colorDialog.open()
                             }
+                        }
+
+                        UI.SettingsCheckItem {
+                            title: "Tool bar primary color"
+                            subtitle: "Use the primary color for the tool bar background"
+                            checkState: UI.Style.toolBarPrimary ? Qt.Checked : Qt.Unchecked
+                            onClicked: UI.Style.toolBarPrimary = !UI.Style.toolBarPrimary
+                            Layout.fillWidth: true
                         }
                     }
                 }
@@ -282,6 +291,32 @@ UI.App {
     }
 
     UI.OptionsDialog {
+        id: themeDialog
+
+        title: "Choose theme style"
+        model: [
+            { name: "Dark", style: Material.Dark },
+            { name: "Light", style: Material.Light },
+            { name: "System", style: Material.System }
+        ]
+        delegate: RowLayout {
+            spacing: 0
+
+            RadioButton {
+                checked: modelData.name === root.themeStyle
+                text: modelData.name
+                Layout.leftMargin: 4
+                onClicked: {
+                    themeDialog.close()
+                    root.themeStyle = modelData.name
+                    UI.Style.theme = modelData.style
+                    root.theme = root.Material.theme === Material.Dark
+                }
+            }
+        }
+    }
+
+    UI.OptionsDialog {
         id: colorDialog
 
         property bool selectAccentColor: false
@@ -293,7 +328,7 @@ UI.App {
             return filtered.length ? filtered[0].name : ""
         }
 
-        title: selectAccentColor ? qsTr("Choose accent color") : qsTr("Choose primary color")
+        title: selectAccentColor ? "Choose accent color" : "Choose primary color"
         model: [
             { name: "Material Red", bg: Material.Red },
             { name: "Material Pink", bg: Material.Pink },

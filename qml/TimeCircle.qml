@@ -72,6 +72,11 @@ Item {
             toMiddleTime = Math.abs(minAngle - handToAnimation.to) / 180 * 400
             fromMiddleTime = Math.abs(hourAngle - handFromAnimation.from) / 180 * 400
         }
+        var animTime = toMiddleTime + fromMiddleTime
+        if (animTime > 0 && animTime < 200) {
+            toMiddleTime = toMiddleTime / animTime * 200
+            fromMiddleTime = fromMiddleTime / animTime * 200
+        }
         handToAnimation.duration = circleToAnimation.duration = toMiddleTime
         handFromAnimation.duration = circleFromAnimation.duration = fromMiddleTime
 
@@ -191,7 +196,7 @@ Item {
                 height: width
                 radius: width / 2
                 anchors.centerIn: parent
-                visible: root.pickMinutes && root.minutes % 5
+                visible: root.pickMinutes && !animation.running && root.minutes % 5
                 color: root.labelDotColor
             }
 

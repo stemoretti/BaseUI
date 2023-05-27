@@ -5,6 +5,8 @@ import QtQuick.Controls.Material
 
 QtObject {
     property bool isDarkTheme: false
+    property int theme: Material.System
+    property bool toolBarPrimary: true
 
     property color primaryColor: Material.color(Material.BlueGrey)
     property color accentColor: Material.color(Material.Orange)
@@ -23,6 +25,8 @@ QtObject {
     property color popupTextColor: isDarkTheme ? "#FFFFFF" : "#424242"
     property color toastColor: isDarkTheme ? "Darkgrey" : "#323232"
     property real toastOpacity: isDarkTheme ? 0.9 : 0.75
+    property color toolBarForeground: toolBarPrimary ? textOnPrimary : (isDarkTheme ? "#FFFFFF" : "#000000")
+    property color toolBarBackground: toolBarPrimary ? primaryColor : (isDarkTheme ? "#1C1B1F" : "#FFFBFE")
 
     // font sizes - defaults from Google Material Design Guide
     property int fontSizeDisplay4: 112

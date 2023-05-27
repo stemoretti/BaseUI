@@ -5,7 +5,9 @@ class QQmlEngine;
 
 namespace BaseUI
 {
-    void init(QQmlEngine *engine);
+
+void init(QQmlEngine *engine);
+
 }
 
 #endif

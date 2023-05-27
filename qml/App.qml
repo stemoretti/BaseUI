@@ -23,5 +23,5 @@ ApplicationWindow {
 
     Material.primary: Style.primaryColor
     Material.accent: Style.accentColor
-    Material.theme: Style.isDarkTheme ? Material.Dark : Material.Light
+    Material.theme: Style.theme
 }

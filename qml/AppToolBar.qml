@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Controls.Material
 
 ToolBar {
     id: root
@@ -10,6 +11,8 @@ ToolBar {
 
     property alias title: titleLabel.text
 
+    Material.background: Style.toolBarBackground
+
     RowLayout {
         focus: false
         spacing: 0
@@ -17,7 +20,7 @@ ToolBar {
 
         ToolButton {
             icon.source: root.leftButton?.icon.source ?? ""
-            icon.color: Style.textOnPrimary
+            icon.color: Style.toolBarForeground
             focusPolicy: Qt.NoFocus
             opacity: Style.opacityTitle
             enabled: root.leftButton && root.leftButton.enabled
@@ -26,14 +29,14 @@ ToolBar {
         LabelTitle {
             id: titleLabel
             elide: Label.ElideRight
-            color: Style.textOnPrimary
+            color: Style.toolBarForeground
             Layout.fillWidth: true
         }
         Repeater {
             model: root.rightButtons.length
             delegate: ToolButton {
                 icon.source: root.rightButtons[index].icon.source
-                icon.color: Style.textOnPrimary
+                icon.color: Style.toolBarForeground
                 focusPolicy: Qt.NoFocus
                 opacity: Style.opacityTitle
                 enabled: root.rightButtons[index].enabled

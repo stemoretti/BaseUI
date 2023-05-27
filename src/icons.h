@@ -4,8 +4,6 @@
 #include <QQmlEngine>
 #include <QQmlPropertyMap>
 
-#include <memory>
-
 namespace BaseUI
 {
 
@@ -16,7 +14,7 @@ class Icons : public QQmlPropertyMap
 public:
     Icons(QObject *parent = nullptr);
 
-    inline static std::unique_ptr<Icons> instance;
+    inline static Icons *instance;
 
     static void registerIcons(QQmlEngine *engine, const QString &fontPath,
                               const QString &fontName, const QVariantMap &codes);
@@ -52,7 +50,7 @@ public:
         else
             s_engine = engine;
 
-        return Icons::instance.get();
+        return Icons::instance;
     }
 
 private:
