@@ -294,22 +294,17 @@ UI.App {
         id: themeDialog
 
         title: "Choose theme style"
-        model: [
-            { name: "Dark", style: Material.Dark },
-            { name: "Light", style: Material.Light },
-            { name: "System", style: Material.System }
-        ]
+        model: [ "Dark", "Light", "System" ]
         delegate: RowLayout {
             spacing: 0
 
             RadioButton {
-                checked: modelData.name === root.themeStyle
-                text: modelData.name
+                checked: modelData === root.themeStyle
+                text: modelData
                 Layout.leftMargin: 4
                 onClicked: {
                     themeDialog.close()
-                    root.themeStyle = modelData.name
-                    UI.Style.theme = modelData.style
+                    root.themeStyle = modelData
                     root.theme = root.Material.theme === Material.Dark
                 }
             }
@@ -395,5 +390,6 @@ UI.App {
         UI.Style.primaryColor = Qt.binding(function() { return root.primary })
         UI.Style.accentColor = Qt.binding(function() { return root.accent })
         UI.Style.isDarkTheme = Qt.binding(function() { return root.theme })
+        UI.Style.theme = Qt.binding(function() { return root.themeStyle })
     }
 }

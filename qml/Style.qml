@@ -5,7 +5,7 @@ import QtQuick.Controls.Material
 
 QtObject {
     property bool isDarkTheme: false
-    property int theme: Material.System
+    property string theme: "System"
     property bool toolBarPrimary: true
 
     property color primaryColor: Material.color(Material.BlueGrey)
