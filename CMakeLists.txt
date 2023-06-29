@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.19)
 
 project(BaseUI VERSION 1.0 LANGUAGES CXX)
 
-include(GNUInstallDirs)
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
@@ -89,19 +87,6 @@ set_target_properties(baseui PROPERTIES
 target_compile_definitions(baseui
     PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 
-target_compile_options(baseui
-    PRIVATE
-        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
-            -Wall
-            -Wextra
-            -Wpedantic
-        >
-
-        $<$<CXX_COMPILER_ID:MSVC>:
-            /W4
-        >
-)
-
 target_link_libraries(baseui
     PRIVATE
         Qt::Core
@@ -109,10 +94,4 @@ target_link_libraries(baseui
         Qt::Qml
         Qt::Quick
         Qt::QuickControls2
-)
-
-install(TARGETS baseui
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    BUNDLE DESTINATION "."
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )

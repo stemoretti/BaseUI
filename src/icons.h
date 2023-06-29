@@ -21,6 +21,7 @@ public:
 
     static void registerIcons(QQmlEngine *engine, const QString &fontPath,
                               const QString &fontName, const QString &codesPath);
+
 protected:
     template <typename DerivedType>
     explicit Icons(DerivedType *derived, QObject *parent = nullptr)

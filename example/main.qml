@@ -13,8 +13,8 @@ UI.App {
 
     property string primary: Material.primary
     property string accent: Material.accent
-    property bool theme: Material.theme === Material.Dark
-    property string themeStyle: "System"
+    property bool isDarkTheme: Material.theme === Material.Dark
+    property string theme: "System"
 
     initialPage: UI.AppStackPage {
         id: homePage
@@ -196,7 +196,7 @@ UI.App {
 
                         UI.SettingsItem {
                             title: "Theme"
-                            subtitle: root.themeStyle
+                            subtitle: root.theme
                             onClicked: themeDialog.open()
                             Layout.fillWidth: true
                         }
@@ -299,13 +299,13 @@ UI.App {
             spacing: 0
 
             RadioButton {
-                checked: modelData === root.themeStyle
+                checked: modelData === root.theme
                 text: modelData
                 Layout.leftMargin: 4
                 onClicked: {
                     themeDialog.close()
-                    root.themeStyle = modelData
-                    root.theme = root.Material.theme === Material.Dark
+                    root.theme = modelData
+                    root.isDarkTheme = root.Material.theme === Material.Dark
                 }
             }
         }
@@ -389,7 +389,7 @@ UI.App {
     Component.onCompleted: {
         UI.Style.primaryColor = Qt.binding(function() { return root.primary })
         UI.Style.accentColor = Qt.binding(function() { return root.accent })
-        UI.Style.isDarkTheme = Qt.binding(function() { return root.theme })
-        UI.Style.theme = Qt.binding(function() { return root.themeStyle })
+        UI.Style.isDarkTheme = Qt.binding(function() { return root.isDarkTheme })
+        UI.Style.theme = Qt.binding(function() { return root.theme })
     }
 }

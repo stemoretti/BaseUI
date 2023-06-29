@@ -9,12 +9,15 @@ Item {
     id: root
 
     property string locale: "en_US"
+    property bool selected: false
     property date selectedDate: new Date()
 
     readonly property int day: selectedDate.getDate()
     readonly property int month: selectedDate.getMonth()
     readonly property int year: selectedDate.getFullYear()
     readonly property string dateString: year + "-" + _zeroPad(month + 1) + "-" + _zeroPad(day)
+
+    signal tappedOnADate()
 
     function _zeroPad(n) { return n > 9 ? n : '0' + n }
 
@@ -113,7 +116,7 @@ Item {
                 // Important: check the month to avoid clicking on days outside where opacity 0
                 if (d.getMonth() === monthGrid.month) {
                     root.selectedDate = d
-                    console.log("tapped on a date ")
+                    root.tappedOnADate()
                 } else {
                     console.log("outside valid month " + d.getMonth())
                 }
@@ -123,7 +126,8 @@ Item {
                 id: dayLabel
 
                 readonly property bool selected:
-                    model.day === root.day
+                    root.selected
+                    && model.day === root.day
                     && model.month === root.month
                     && model.year === root.year
 
